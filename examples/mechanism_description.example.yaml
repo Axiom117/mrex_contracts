@@ -1,0 +1,73 @@
+# Illustrative MechanismDescription example (C -> D / IV).
+# Open-chain single-revolute voxel mechanism; schematic values.
+# This document IS the symbolic kinematic description consumed by chapter IV.
+meta:
+  schema_version: "0.1.0"
+  mechanism_id: "mech-demo-01"
+  task_id: "orient-L2-embryo-003"
+  topology_ref: "topo-3t1r-demo"
+  generator: "mrex_modularization"
+  description: "Schematic tool-rooted voxel chain (base -> frame -> joint -> tool)"
+frame:
+  world: "base"
+  tool: "tool_tip"
+  transform_convention: "p_parent = T * p_child"
+  units: {length: mm, angle: rad}
+modules:
+  - id: base
+    type: base
+    model: "MREX-BASE-01"
+    pose: [1, 0, 0, 0,  0, 1, 0, 0,  0, 0, 1, 0,  0, 0, 0, 1]
+    ports:
+      - {id: "+z", connected_to: {module: frame1, port: "-z"}}
+  - id: frame1
+    type: frame
+    model: "MREX-FRAME-10"
+    pose: [1, 0, 0, 0,  0, 1, 0, 0,  0, 0, 1, 10,  0, 0, 0, 1]
+    params: {length: 10}
+    ports:
+      - {id: "-z", connected_to: {module: base, port: "+z"}}
+      - {id: "+x", connected_to: {module: joint1, port: "-x"}}
+  - id: joint1
+    type: joint
+    model: "MREX-JOINT-RZ"
+    pose: [1, 0, 0, 10,  0, 1, 0, 0,  0, 0, 1, 10,  0, 0, 0, 1]
+    params: {axis: "z", range: [-1.5708, 1.5708]}
+    ports:
+      - {id: "-x", connected_to: {module: frame1, port: "+x"}}
+      - {id: "+x", connected_to: {module: tool, port: "-x"}}
+  - id: tool
+    type: tool
+    model: "MREX-TOOL-ADH"
+    pose: [1, 0, 0, 15,  0, 1, 0, 0,  0, 0, 1, 10,  0, 0, 0, 1]
+    ports:
+      - {id: "-x", connected_to: {module: joint1, port: "+x"}}
+connections:
+  - {id: c1, from: {module: base, port: "+z"}, to: {module: frame1, port: "-z"}, joint: null, rigid: true}
+  - {id: c2, from: {module: frame1, port: "+x"}, to: {module: joint1, port: "-x"}, joint: null, rigid: true}
+  - {id: c3, from: {module: joint1, port: "+x"}, to: {module: tool, port: "-x"}, joint: j1, rigid: false}
+joints:
+  - {id: j1, kind: revolute, module: joint1, axis: [0, 0, 0, 0, 0, 1], point: [10, 0, 10], range: [-1.5708, 1.5708], actuated: true}
+assembly_tree:
+  root: tool
+  order: [tool, joint1, frame1, base]
+closed_loops: []
+symbolic:
+  parameters:
+    - {name: l1, value: 10, unit: mm, fixed: true}
+    - {name: l2, value: 5, unit: mm, fixed: true}
+  variables:
+    - {name: theta1, note: "joint 1 angle"}
+dof: 1
+realized_screw_system:
+  S:
+    - [0, 0, 0, 0, 0, 1]
+  W:
+    - [0, 0, 0, 1, 0, 0]
+    - [0, 0, 0, 0, 1, 0]
+    - [1, 0, 0, 0, 0, 0]
+    - [0, 1, 0, 0, 0, 0]
+    - [0, 0, 1, 0, 0, 0]
+provenance:
+  generator_version: "0.1.0"
+  convention: "murray-linear-first"

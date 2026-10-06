@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mrex:contracts:topology:0.1.0",
+  "title": "Topology",
+  "description": "Abstract mechanism topology produced by type synthesis (B) and consumed by voxel modularization (C): nodes (links), joints (edges), limb decomposition, and the realized screw system. Discrete/voxel instantiation is intentionally NOT part of this contract.",
+  "type": "object",
+  "required": ["meta", "kind", "dof", "nodes", "joints", "screw_system"],
+  "additionalProperties": false,
+  "properties": {
+    "meta": {
+      "type": "object",
+      "required": ["schema_version", "topology_id"],
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {"type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$"},
+        "topology_id": {"type": "string", "minLength": 1},
+        "task_id": {"type": "string"},
+        "requirement_ref": {"type": "string", "description": "source_descriptor task_id of the TaskRequirement"},
+        "generator": {"type": "string"},
+        "created": {"type": "string", "format": "date-time"},
+        "description": {"type": "string"}
+      }
+    },
+    "kind": {"enum": ["serial", "parallel", "hybrid"]},
+    "dof": {"type": "integer", "minimum": 0, "maximum": 6, "description": "rank{S} realized by this topology"},
+    "screw_system": {
+      "type": "object",
+      "required": ["S", "W"],
+      "additionalProperties": false,
+      "properties": {
+        "S": {"type": "array", "items": {"$ref": "#/$defs/vec6"}},
+        "W": {"type": "array", "items": {"$ref": "#/$defs/vec6"}}
+      }
+    },
+    "nodes": {
+      "type": "array",
+      "minItems": 2,
+      "description": "Links of the mechanism.",
+      "items": {
+        "type": "object",
+        "required": ["id", "kind"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {"type": "string"},
+          "kind": {"enum": ["base", "platform", "link"]},
+          "name": {"type": "string"}
+        }
+      }
+    },
+    "joints": {
+      "type": "array",
+      "description": "Edges of the mechanism (kinematic pairs).",
+      "items": {
+        "type": "object",
+        "required": ["id", "kind", "from", "to"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {"type": "string"},
+          "kind": {"enum": ["revolute", "prismatic", "universal", "spherical", "cylindrical", "planar", "helical", "rigid"]},
+          "from": {"type": "string", "description": "node id"},
+          "to": {"type": "string", "description": "node id"},
+          "axis": {"$ref": "#/$defs/vec6", "description": "Joint unit screw (linear-first); zero-direction for rigid."},
+          "point": {"$ref": "#/$defs/vec3", "description": "A point on the joint axis (revolute/cylindrical/helical)."},
+          "range": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "number"}},
+          "actuated": {"type": "boolean"},
+          "locked": {"type": "boolean"}
+        }
+      }
+    },
+    "limbs": {
+      "type": "array",
+      "description": "Kinematic chains from base to platform (parallel/hybrid).",
+      "items": {
+        "type": "object",
+        "required": ["id", "joints"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {"type": "string"},
+          "from": {"type": "string", "description": "node id, typically the base"},
+          "to": {"type": "string", "description": "node id, typically the platform"},
+          "joints": {"type": "array", "items": {"type": "string"}, "description": "ordered joint ids"}
+        }
+      }
+    },
+    "closed_loops": {
+      "type": "array",
+      "description": "Independent closed loops (for closed-chain constraint assembly).",
+      "items": {
+        "type": "object",
+        "required": ["id", "joints"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {"type": "string"},
+          "joints": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    },
+    "graph": {
+      "type": "object",
+      "description": "Optional derived connectivity (adjacency over node ids).",
+      "additionalProperties": false,
+      "properties": {
+        "order": {"type": "array", "items": {"type": "string"}},
+        "adjacency": {"type": "array", "items": {"type": "array", "items": {"type": "integer"}}}
+      }
+    },
+    "constraints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["type", "screw"],
+        "additionalProperties": false,
+        "properties": {
+          "type": {"enum": ["rcm-point", "axis", "plane", "pure-force", "pure-couple", "general"]},
+          "screw": {"$ref": "#/$defs/vec6"},
+          "description": {"type": "string"}
+        }
+      }
+    },
+    "provenance": {"type": "object", "additionalProperties": true}
+  },
+  "$defs": {
+    "vec3": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "number"}},
+    "vec6": {"type": "array", "minItems": 6, "maxItems": 6, "items": {"type": "number"}}
+  }
+}

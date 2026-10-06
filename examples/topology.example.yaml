@@ -1,0 +1,54 @@
+# Illustrative Topology example (B -> C).
+# Schematic values; kinematics NOT verified. See docs/conventions.md for screw ordering.
+meta:
+  schema_version: "0.1.0"
+  topology_id: "topo-3t1r-demo"
+  task_id: "orient-L2-embryo-003"
+  requirement_ref: "orient-L2-embryo-003"
+  generator: "mrex_type_synthesis"
+  description: "Schematic 4-limb 3T1R parallel topology"
+kind: parallel
+dof: 4
+screw_system:
+  # linear-first twists [v; w]: 3 translations + rotation about z
+  S:
+    - [1, 0, 0, 0, 0, 0]
+    - [0, 1, 0, 0, 0, 0]
+    - [0, 0, 1, 0, 0, 0]
+    - [0, 0, 0, 0, 0, 1]
+  # reciprocal wrenches [f; m]: lock rotations about x and y
+  W:
+    - [0, 0, 0, 1, 0, 0]
+    - [0, 0, 0, 0, 1, 0]
+nodes:
+  - {id: base, kind: base}
+  - {id: platform, kind: platform}
+  - {id: link1, kind: link}
+  - {id: link2, kind: link}
+  - {id: link3, kind: link}
+  - {id: link4, kind: link}
+joints:
+  - {id: j1a, kind: prismatic, from: base, to: link1, axis: [1, 0, 0, 0, 0, 0], actuated: true}
+  - {id: j1b, kind: revolute, from: link1, to: platform, axis: [0, 0, 0, 0, 0, 1], point: [0, 0, 0], actuated: true}
+  - {id: j2a, kind: prismatic, from: base, to: link2, axis: [0, 1, 0, 0, 0, 0], actuated: true}
+  - {id: j2b, kind: revolute, from: link2, to: platform, axis: [0, 0, 0, 0, 0, 1], point: [0, 0, 0], actuated: true}
+  - {id: j3a, kind: prismatic, from: base, to: link3, axis: [0, 0, 1, 0, 0, 0], actuated: true}
+  - {id: j3b, kind: revolute, from: link3, to: platform, axis: [0, 0, 0, 0, 0, 1], point: [0, 0, 0], actuated: true}
+  - {id: j4a, kind: revolute, from: base, to: link4, axis: [0, 0, 0, 0, 0, 1], point: [0, 0, 1], actuated: true}
+  - {id: j4b, kind: rigid, from: link4, to: platform, axis: [0, 0, 0, 0, 0, 0], locked: true}
+limbs:
+  - {id: limb1, from: base, to: platform, joints: [j1a, j1b]}
+  - {id: limb2, from: base, to: platform, joints: [j2a, j2b]}
+  - {id: limb3, from: base, to: platform, joints: [j3a, j3b]}
+  - {id: limb4, from: base, to: platform, joints: [j4a, j4b]}
+closed_loops:
+  - {id: loop1, joints: [j1a, j1b]}
+  - {id: loop2, joints: [j2a, j2b]}
+  - {id: loop3, joints: [j3a, j3b]}
+  - {id: loop4, joints: [j4a, j4b]}
+constraints:
+  - {type: general, screw: [0, 0, 0, 1, 0, 0], description: "locked rotation about x"}
+  - {type: general, screw: [0, 0, 0, 0, 1, 0], description: "locked rotation about y"}
+provenance:
+  generator_version: "0.1.0"
+  convention: "murray-linear-first"

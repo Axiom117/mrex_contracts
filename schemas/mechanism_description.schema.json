@@ -1,0 +1,198 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mrex:contracts:mechanism_description:0.1.0",
+  "title": "MechanismDescription",
+  "description": "Discrete voxel-mechanism description produced by voxel modularization (C), consumed by evaluation (D) and by the symbolic-kinematics generator (chapter IV). This IS the symbolic kinematic description document (YAML): C's output = IV's input, no transform. Provisional until the IV-chapter DSL is formally specified.",
+  "type": "object",
+  "required": ["meta", "frame", "modules", "connections", "joints", "assembly_tree", "dof"],
+  "additionalProperties": false,
+  "properties": {
+    "meta": {
+      "type": "object",
+      "required": ["schema_version", "mechanism_id"],
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {"type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$"},
+        "mechanism_id": {"type": "string", "minLength": 1},
+        "task_id": {"type": "string"},
+        "topology_ref": {"type": "string", "description": "source topology_id"},
+        "generator": {"type": "string"},
+        "created": {"type": "string", "format": "date-time"},
+        "description": {"type": "string"}
+      }
+    },
+    "frame": {
+      "type": "object",
+      "required": ["world", "tool", "transform_convention", "units"],
+      "additionalProperties": false,
+      "properties": {
+        "world": {"type": "string", "description": "typically the base frame"},
+        "tool": {"type": "string", "description": "end-effector frame; FK is tool-rooted"},
+        "transform_convention": {"const": "p_parent = T * p_child"},
+        "units": {
+          "type": "object",
+          "required": ["length", "angle"],
+          "additionalProperties": false,
+          "properties": {
+            "length": {"enum": ["mm", "m", "um"]},
+            "angle": {"enum": ["rad", "deg"]}
+          }
+        }
+      }
+    },
+    "modules": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "type"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {"type": "string"},
+          "type": {"enum": ["base", "frame", "joint", "tool", "custom"]},
+          "model": {"type": "string", "description": "module-library SKU / part number"},
+          "pose": {"$ref": "#/$defs/mat4", "description": "SE(3) of the module in its parent/world frame"},
+          "params": {"type": "object", "description": "module-specific parameters (e.g. link length, joint axis)"},
+          "ports": {
+            "type": "array",
+            "description": "Six-face connection sites; unconnected ports have connected_to = null.",
+            "items": {
+              "type": "object",
+              "required": ["id"],
+              "additionalProperties": false,
+              "properties": {
+                "id": {"type": "string", "description": "e.g. '+x','-x','+y','-y','+z','-z'"},
+                "connected_to": {
+                  "oneOf": [
+                    {"type": "null"},
+                    {
+                      "type": "object",
+                      "required": ["module", "port"],
+                      "additionalProperties": false,
+                      "properties": {
+                        "module": {"type": "string"},
+                        "port": {"type": "string"}
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "connections": {
+      "type": "array",
+      "description": "Pairwise module-port attachments (assembly graph).",
+      "items": {
+        "type": "object",
+        "required": ["id", "from", "to", "rigid"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {"type": "string"},
+          "from": {"$ref": "#/$defs/port_ref"},
+          "to": {"$ref": "#/$defs/port_ref"},
+          "joint": {"type": ["string", "null"], "description": "joint id if this attachment is articulated, else null"},
+          "rigid": {"type": "boolean"}
+        }
+      }
+    },
+    "joints": {
+      "type": "array",
+      "description": "Actuated/passive DOFs realized by joint modules.",
+      "items": {
+        "type": "object",
+        "required": ["id", "kind", "module"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {"type": "string"},
+          "kind": {"enum": ["revolute", "prismatic", "universal", "spherical", "cylindrical", "helical"]},
+          "module": {"type": "string", "description": "module id realizing this joint"},
+          "axis": {"$ref": "#/$defs/vec6", "description": "joint unit screw (linear-first)"},
+          "point": {"$ref": "#/$defs/vec3"},
+          "range": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "number"}},
+          "actuated": {"type": "boolean"}
+        }
+      }
+    },
+    "assembly_tree": {
+      "type": "object",
+      "description": "Tool-rooted FK propagation order.",
+      "required": ["root", "order"],
+      "additionalProperties": false,
+      "properties": {
+        "root": {"type": "string", "description": "module id, typically the tool"},
+        "order": {"type": "array", "items": {"type": "string"}, "description": "module ids in propagation order"}
+      }
+    },
+    "closed_loops": {
+      "type": "array",
+      "description": "Closed kinematic chains to assemble as constraints.",
+      "items": {
+        "type": "object",
+        "required": ["id", "modules", "joints"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {"type": "string"},
+          "modules": {"type": "array", "items": {"type": "string"}},
+          "joints": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    },
+    "symbolic": {
+      "type": "object",
+      "description": "Symbol table for equation generation (chapter IV).",
+      "additionalProperties": false,
+      "properties": {
+        "parameters": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name"],
+            "additionalProperties": false,
+            "properties": {
+              "name": {"type": "string"},
+              "value": {"type": "number"},
+              "unit": {"type": "string"},
+              "fixed": {"type": "boolean"}
+            }
+          }
+        },
+        "variables": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name"],
+            "additionalProperties": false,
+            "properties": {
+              "name": {"type": "string"},
+              "note": {"type": "string"}
+            }
+          }
+        }
+      }
+    },
+    "dof": {"type": "integer", "minimum": 0, "maximum": 6},
+    "realized_screw_system": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "S": {"type": "array", "items": {"$ref": "#/$defs/vec6"}},
+        "W": {"type": "array", "items": {"$ref": "#/$defs/vec6"}}
+      }
+    },
+    "provenance": {"type": "object", "additionalProperties": true}
+  },
+  "$defs": {
+    "vec3": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "number"}},
+    "vec6": {"type": "array", "minItems": 6, "maxItems": 6, "items": {"type": "number"}},
+    "mat4": {"type": "array", "minItems": 16, "maxItems": 16, "items": {"type": "number"}},
+    "port_ref": {
+      "type": "object",
+      "required": ["module", "port"],
+      "additionalProperties": false,
+      "properties": {"module": {"type": "string"}, "port": {"type": "string"}}
+    }
+  }
+}

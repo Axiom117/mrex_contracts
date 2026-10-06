@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mrex:contracts:task_requirement:0.1.0",
+  "title": "TaskRequirement",
+  "description": "Quantified task requirement derived from a TaskDescriptor: motion screw system {S}, constraint screw system {W} = null(S^T), and metrics. Consumed by type synthesis, and by evaluation (Phi) for task-mechanism matching.",
+  "type": "object",
+  "required": ["meta", "screw_system", "dof", "metrics"],
+  "additionalProperties": false,
+  "properties": {
+    "meta": {
+      "type": "object",
+      "required": ["schema_version", "task_id"],
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {"type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$"},
+        "task_id": {"type": "string", "minLength": 1},
+        "source_descriptor": {"type": "string", "description": "task_id of the originating TaskDescriptor"},
+        "generator": {"type": "string"},
+        "created": {"type": "string", "format": "date-time"},
+        "description": {"type": "string"}
+      }
+    },
+    "screw_system": {
+      "type": "object",
+      "required": ["S", "W"],
+      "additionalProperties": false,
+      "properties": {
+        "S": {
+          "type": "array",
+          "description": "Motion screw system: spanning twists of the task's essential motion (linear-first, see conventions).",
+          "items": {"$ref": "#/$defs/vec6"}
+        },
+        "W": {
+          "type": "array",
+          "description": "Constraint screw system: reciprocal wrenches, W = null(S^T).",
+          "items": {"$ref": "#/$defs/vec6"}
+        }
+      }
+    },
+    "dof": {"type": "integer", "minimum": 0, "maximum": 6, "description": "rank{S}"},
+    "constraints": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/constraint"}
+    },
+    "motion_profiles": {
+      "type": "array",
+      "description": "Per-phase constant-screw parameterization (motion primitives).",
+      "items": {"$ref": "#/$defs/motion_profile"}
+    },
+    "metrics": {"$ref": "#/$defs/metrics"},
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "generator": {"type": "string"},
+        "generator_version": {"type": "string"},
+        "toolchain": {"type": "string", "description": "e.g. NxRLab/ModernRobotics"},
+        "convention": {"type": "string", "description": "screw ordering used, e.g. 'murray-linear-first'"}
+      }
+    },
+    "computed_at": {"type": "string", "format": "date-time"},
+    "computed_from": {"type": "string", "description": "TaskDescriptor schema version used"}
+  },
+  "$defs": {
+    "vec3": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "number"}},
+    "vec6": {"type": "array", "minItems": 6, "maxItems": 6, "items": {"type": "number"}},
+    "constraint": {
+      "type": "object",
+      "required": ["type", "screw"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "enum": ["rcm-point", "axis", "plane", "pure-force", "pure-couple", "general"],
+          "description": "Physical kind of the constrained freedom."
+        },
+        "screw": {"$ref": "#/$defs/vec6", "description": "Wrench (force-first, see conventions)."},
+        "description": {"type": "string"}
+      }
+    },
+    "motion_profile": {
+      "type": "object",
+      "required": ["phase", "screw"],
+      "additionalProperties": false,
+      "properties": {
+        "phase": {"type": "string"},
+        "screw": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "axis": {"$ref": "#/$defs/vec6"},
+            "pitch": {"type": "number"},
+            "amplitude": {"type": "number"},
+            "ref_point": {"$ref": "#/$defs/vec3"}
+          }
+        }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "working_range": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "pca_extent": {"$ref": "#/$defs/vec3"},
+            "bbox": {"$ref": "#/$defs/vec3"},
+            "min_enclosing_sphere": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "center": {"$ref": "#/$defs/vec3"},
+                "radius": {"type": "number"}
+              }
+            }
+          }
+        },
+        "stiffness": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "wrench_space": {"type": "array", "items": {"$ref": "#/$defs/vec6"}},
+            "magnitude_range": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "number"}}
+          }
+        }
+      }
+    }
+  }
+}

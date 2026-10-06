@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mrex:contracts:evaluation:0.1.0",
+  "title": "Evaluation",
+  "description": "Result of the evaluation function Phi (D): task-mechanism matching score plus per-metric breakdown and loop-back feedback.",
+  "type": "object",
+  "required": ["meta", "phi", "passed"],
+  "additionalProperties": false,
+  "properties": {
+    "meta": {
+      "type": "object",
+      "required": ["schema_version", "evaluation_id", "task_id", "mechanism_id"],
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {"type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$"},
+        "evaluation_id": {"type": "string"},
+        "task_id": {"type": "string"},
+        "mechanism_id": {"type": "string"},
+        "topology_id": {"type": "string"},
+        "generator": {"type": "string"},
+        "created": {"type": "string", "format": "date-time"}
+      }
+    },
+    "phi": {"type": "number", "description": "Phi = alpha*Fm - beta*Fc - gamma*N"},
+    "terms": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Fm": {"type": "number", "description": "task-mechanism motion match"},
+        "Fc": {"type": "number", "description": "constraint mismatch penalty"},
+        "N": {"type": "number", "description": "complexity / module count"},
+        "weights": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "alpha": {"type": "number"},
+            "beta": {"type": "number"},
+            "gamma": {"type": "number"}
+          }
+        }
+      }
+    },
+    "metric_scores": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["metric", "score"],
+        "additionalProperties": false,
+        "properties": {
+          "metric": {"enum": ["dof", "constraint", "working_range", "stiffness", "other"]},
+          "requirement": {"type": ["number", "string", "array", "null"]},
+          "achieved": {"type": ["number", "string", "array", "null"]},
+          "score": {"type": "number"},
+          "weight": {"type": "number"}
+        }
+      }
+    },
+    "passed": {"type": "boolean"},
+    "feedback": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "action": {"enum": ["accept", "revise_topology", "re_voxelize"]},
+        "notes": {"type": "string"}
+      }
+    },
+    "computed_at": {"type": "string", "format": "date-time"}
+  }
+}
