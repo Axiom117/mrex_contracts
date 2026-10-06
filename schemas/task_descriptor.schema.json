@@ -1,69 +1,189 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "mrex/task-descriptor/0.2.0",
+  "$id": "urn:mrex:contracts:task_descriptor:0.2.0",
   "title": "TaskDescriptor",
   "type": "object",
-  "required": ["meta", "frames", "task", "trajectory"],
+  "required": [
+    "meta",
+    "frames",
+    "task",
+    "trajectory"
+  ],
   "additionalProperties": false,
   "properties": {
     "meta": {
       "type": "object",
-      "required": ["schema_version", "task_id", "source", "units"],
+      "required": [
+        "schema_version",
+        "task_id",
+        "source",
+        "units"
+      ],
       "additionalProperties": false,
       "properties": {
-        "schema_version": {"type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$"},
-        "task_id": {"type": "string", "minLength": 1},
-        "source": {"enum": ["sim", "vision", "demo", "spec"]},
-        "source_detail": {"type": "string"},
-        "created": {"type": "string", "format": "date-time"},
-        "description": {"type": "string"},
+        "schema_version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        },
+        "task_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "enum": [
+            "sim",
+            "vision",
+            "demo",
+            "spec"
+          ]
+        },
+        "source_detail": {
+          "type": "string"
+        },
+        "created": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "description": {
+          "type": "string"
+        },
         "provenance": {
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "generator": {"type": "string"},
-            "generator_version": {"type": "string"},
-            "config_name": {"type": "string"},
-            "seed": {"type": ["integer", "null"]},
-            "finish_reason": {"type": "string"}
+            "generator": {
+              "type": "string"
+            },
+            "generator_version": {
+              "type": "string"
+            },
+            "config_name": {
+              "type": "string"
+            },
+            "seed": {
+              "type": [
+                "integer",
+                "null"
+              ]
+            },
+            "finish_reason": {
+              "type": "string"
+            }
           }
         },
         "units": {
           "type": "object",
-          "required": ["length", "angle", "time"],
+          "required": [
+            "length",
+            "angle",
+            "time"
+          ],
           "additionalProperties": false,
           "properties": {
-            "length": {"enum": ["mm", "m", "um"]},
-            "angle": {"enum": ["rad", "deg"]},
-            "time": {"enum": ["s", "ms"]},
-            "force": {"enum": ["N", "mN", "uN"]},
-            "torque": {"enum": ["Nmm", "mNm", "uNm"]}
+            "length": {
+              "enum": [
+                "mm",
+                "m",
+                "um"
+              ]
+            },
+            "angle": {
+              "enum": [
+                "rad",
+                "deg"
+              ]
+            },
+            "time": {
+              "enum": [
+                "s",
+                "ms"
+              ]
+            },
+            "force": {
+              "enum": [
+                "N",
+                "mN",
+                "uN"
+              ]
+            },
+            "torque": {
+              "enum": [
+                "Nmm",
+                "mNm",
+                "uNm"
+              ]
+            }
           }
         }
       }
     },
     "frames": {
       "type": "object",
-      "required": ["world", "ee_frame"],
+      "required": [
+        "world",
+        "ee_frame"
+      ],
       "additionalProperties": false,
       "properties": {
-        "world": {"type": "string"},
-        "ee_frame": {"type": "string"},
-        "object_frame": {"type": "string"},
-        "handedness": {"const": "right"},
-        "matrix_order": {"const": "row-major"},
-        "transform_convention": {"const": "p_parent = T * p_child"}
+        "world": {
+          "type": "string"
+        },
+        "ee_frame": {
+          "type": "string"
+        },
+        "object_frame": {
+          "type": "string"
+        },
+        "handedness": {
+          "const": "right"
+        },
+        "matrix_order": {
+          "const": "row-major"
+        },
+        "transform_convention": {
+          "const": "p_parent = T * p_child"
+        }
       }
     },
     "task": {
       "type": "object",
-      "required": ["class", "granularity_level"],
+      "required": [
+        "class",
+        "granularity_level"
+      ],
       "additionalProperties": false,
       "properties": {
-        "class": {"enum": ["detect", "orient", "inject", "collect", "dechorionate", "place", "transfer", "other"]},
-        "granularity_level": {"enum": [1, 2, 3]},
-        "parent_task_id": {"type": ["string", "null"]},
-        "phases_order": {"type": "array", "items": {"$ref": "#/$defs/phase"}}
+        "class": {
+          "enum": [
+            "detect",
+            "orient",
+            "inject",
+            "collect",
+            "dechorionate",
+            "place",
+            "transfer",
+            "other"
+          ]
+        },
+        "granularity_level": {
+          "enum": [
+            1,
+            2,
+            3
+          ]
+        },
+        "parent_task_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "phases_order": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/phase"
+          }
+        }
       }
     },
     "trajectory": {
@@ -71,18 +191,62 @@
       "minItems": 1,
       "items": {
         "type": "object",
-        "required": ["t", "T_ee", "phase"],
+        "required": [
+          "t",
+          "T_ee",
+          "phase"
+        ],
         "additionalProperties": false,
         "properties": {
-          "t": {"type": "number"},
-          "T_ee": {"$ref": "#/$defs/mat4"},
-          "object_pose": {"oneOf": [{"$ref": "#/$defs/mat4"}, {"type": "null"}]},
-          "contact_state": {"enum": ["free", "contact", "grasp", "inject"]},
-          "required_wrench": {"$ref": "#/$defs/vec6"},
-          "measured_wrench": {"oneOf": [{"$ref": "#/$defs/vec6"}, {"type": "null"}]},
-          "is_essential": {"type": "boolean"},
-          "phase": {"$ref": "#/$defs/phase"},
-          "source_node": {"type": ["integer", "null"]}
+          "t": {
+            "type": "number"
+          },
+          "T_ee": {
+            "$ref": "#/$defs/mat4"
+          },
+          "object_pose": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/mat4"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "contact_state": {
+            "enum": [
+              "free",
+              "contact",
+              "grasp",
+              "inject"
+            ]
+          },
+          "required_wrench": {
+            "$ref": "#/$defs/vec6"
+          },
+          "measured_wrench": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/vec6"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "is_essential": {
+            "type": "boolean"
+          },
+          "phase": {
+            "$ref": "#/$defs/phase"
+          },
+          "source_node": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
         }
       }
     },
@@ -90,26 +254,53 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "phase", "start_t", "end_t"],
+        "required": [
+          "id",
+          "phase",
+          "start_t",
+          "end_t"
+        ],
         "additionalProperties": false,
         "properties": {
-          "id": {"type": "string"},
-          "phase": {"$ref": "#/$defs/phase"},
-          "start_t": {"type": "number"},
-          "end_t": {"type": "number"},
-          "start_idx": {"type": "integer"},
-          "end_idx": {"type": "integer"},
+          "id": {
+            "type": "string"
+          },
+          "phase": {
+            "$ref": "#/$defs/phase"
+          },
+          "start_t": {
+            "type": "number"
+          },
+          "end_t": {
+            "type": "number"
+          },
+          "start_idx": {
+            "type": "integer"
+          },
+          "end_idx": {
+            "type": "integer"
+          },
           "screw": {
             "type": "object",
             "additionalProperties": false,
             "properties": {
-              "axis": {"$ref": "#/$defs/vec6"},
-              "pitch": {"type": "number"},
-              "amplitude": {"type": "number"},
-              "ref_point": {"$ref": "#/$defs/vec3"}
+              "axis": {
+                "$ref": "#/$defs/vec6"
+              },
+              "pitch": {
+                "type": "number"
+              },
+              "amplitude": {
+                "type": "number"
+              },
+              "ref_point": {
+                "$ref": "#/$defs/vec3"
+              }
             }
           },
-          "essential": {"type": "boolean"}
+          "essential": {
+            "type": "boolean"
+          }
         }
       }
     },
@@ -117,17 +308,29 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "dof": {"type": "integer", "minimum": 0, "maximum": 6},
+        "dof": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 6
+        },
         "working_range": {
           "type": "object",
           "properties": {
-            "pca_extent": {"$ref": "#/$defs/vec3"},
-            "bbox": {"$ref": "#/$defs/vec3"},
+            "pca_extent": {
+              "$ref": "#/$defs/vec3"
+            },
+            "bbox": {
+              "$ref": "#/$defs/vec3"
+            },
             "min_enclosing_sphere": {
               "type": "object",
               "properties": {
-                "center": {"$ref": "#/$defs/vec3"},
-                "radius": {"type": "number"}
+                "center": {
+                  "$ref": "#/$defs/vec3"
+                },
+                "radius": {
+                  "type": "number"
+                }
               }
             }
           }
@@ -135,26 +338,88 @@
         "stiffness": {
           "type": "object",
           "properties": {
-            "wrench_space": {"type": "array", "items": {"$ref": "#/$defs/vec6"}},
-            "magnitude_range": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "number"}}
+            "wrench_space": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/vec6"
+              }
+            },
+            "magnitude_range": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number"
+              }
+            }
           }
         },
         "screw_system": {
           "type": "object",
           "properties": {
-            "S": {"type": "array", "items": {"$ref": "#/$defs/vec6"}},
-            "W": {"type": "array", "items": {"$ref": "#/$defs/vec6"}}
+            "S": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/vec6"
+              }
+            },
+            "W": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/vec6"
+              }
+            }
           }
         },
-        "computed_at": {"type": "string", "format": "date-time"},
-        "computed_from": {"type": "string"}
+        "computed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "computed_from": {
+          "type": "string"
+        }
       }
     }
   },
   "$defs": {
-    "vec3": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "number"}},
-    "vec6": {"type": "array", "minItems": 6, "maxItems": 6, "items": {"type": "number"}},
-    "mat4": {"type": "array", "minItems": 16, "maxItems": 16, "items": {"type": "number"}},
-    "phase": {"enum": ["approach", "grasp", "lift", "reorient", "place", "retract", "home", "puncture", "dispense", "transfer", "idle"]}
+    "vec3": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "number"
+      }
+    },
+    "vec6": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {
+        "type": "number"
+      }
+    },
+    "mat4": {
+      "type": "array",
+      "minItems": 16,
+      "maxItems": 16,
+      "items": {
+        "type": "number"
+      }
+    },
+    "phase": {
+      "enum": [
+        "approach",
+        "grasp",
+        "lift",
+        "reorient",
+        "place",
+        "retract",
+        "home",
+        "puncture",
+        "dispense",
+        "transfer",
+        "idle"
+      ]
+    }
   }
 }
