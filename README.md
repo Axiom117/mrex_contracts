@@ -56,6 +56,23 @@ Conventions (units, pose, screw ordering, ids, versioning) are authoritative in 
 - Other contracts v0.1.0 — **drafts**; `MechanismDescription` pending IV-chapter ratification.
 - Python (pydantic) model bindings planned; the JSON Schemas are authoritative.
 
+## Open items
+
+Recorded here because consumers already code against the drafts.
+
+1. **`MechanismDescription` vs the IV-chapter DSL port vocabulary.** This contract names module
+   ports `+x` / `-x` / `+y` / `-y` / `+z` / `-z`; the symbolic DSL names them `faceXPlus` …
+   `faceZMinus`. `mrex_modularization` emits both from one wiring (table
+   `mapping.describe.DSL_TO_CONTRACT_PORT`), but one of the two vocabularies has to move before
+   `MechanismDescription` is ratified.
+2. **No module `type` value for `Pin` / `Adaptor` / `Manipulator`.** The example exercises only
+   `base` / `frame` / `joint` / `tool` (plus `custom`). C emits `custom` with a `MREX-*` `model`
+   id until the vocabulary grows.
+3. **Producers are not yet writing contract documents everywhere.** `mrex_type_synthesis` writes
+   intermediate `candidates.json` / `validation.json` and not yet a contract `Topology`
+   (milestone D6), so C's example topologies remain hand-written; and nothing yet emits a real
+   `Evaluation` from an end-to-end run.
+
 ## References
 
 - Vault: `3. Task Driven Type Synthesis/1. Task Recognition and Motion Primitives Retrieval/3. TaskDescriptor 数据接口规范` (v0.2.0)
@@ -64,6 +81,6 @@ Conventions (units, pose, screw ordering, ids, versioning) are authoritative in 
 
 - A+B: `mrex_type_synthesis`
 - Data source: `M-REx_Perception`
-- C: `mrex_modularization` (planned)
-- D / orchestrator: `mrex_generative` (planned)
+- C: `mrex_modularization` — topology → module assembly → `MechanismDescription` (exists since 2026-10-10)
+- D / orchestrator: `mrex_generative` (planned; the Φ score currently lives in `mrex_modularization`)
 - IV: `symbolic-modular-kinematics`
